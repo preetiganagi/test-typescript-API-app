@@ -9,10 +9,12 @@ return new class extends Migration {
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('recipe_id'); // Foreign key for recipe
+            $table->unsignedBigInteger('recipe_id'); 
             $table->text('comment');
             $table->timestamps();
-
+            $table->integer('rating')->nullable(); 
+            $table->unsignedBigInteger('user_id'); 
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade'); 
             $table->foreign('recipe_id')->references('id')->on('recipes')->onDelete('cascade');
         });
     }

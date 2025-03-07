@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Recipe;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 
 class RecipeController extends Controller
 {
@@ -14,7 +16,7 @@ class RecipeController extends Controller
         // Search by ingredients
         if ($request->has('search')) {
             $search = $request->input('search');
-            $query->where('ingredients', 'LIKE', "%{$search}%");
+            $query->where('ingredients', 'LIKE', "%{$search}%")->orWhere('title', 'LIKE', "%{$search}%");
         }
 
         return response()->json($query->get());
@@ -39,8 +41,11 @@ class RecipeController extends Controller
             'ingredients' => $request->ingredients,
             'steps' => $request->steps,
             'image' => $imagePath ? asset("storage/$imagePath") : null,
+            'user_id' => $request->user_id,
+            'time' => $request->time,
         ]);
-
+        $recipe->updateAverageRating();
+        $recipe->save();
         return response()->json($recipe, 201);
     }
 
@@ -54,14 +59,22 @@ class RecipeController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('recipes', 'public');
+        }
+
         $recipe = Recipe::findOrFail($id);
-        
         $recipe->update([
             'title' => $request->title,
             'ingredients' => $request->ingredients,
             'steps' => $request->steps,
+            'user_id' => $request->user_id,
+            'time' => $request->time,
         ]);
-
+        $recipe->updateAverageRating();
+        $imagePath ? $recipe->image = asset("storage/$imagePath") : "";
+        $recipe->save();
         return response()->json($recipe);
     }
 

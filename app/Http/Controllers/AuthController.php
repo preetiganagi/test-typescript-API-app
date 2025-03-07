@@ -50,4 +50,11 @@ class AuthController extends Controller
     {
         return response()->json(Auth::user());
     }
+
+    public function user()
+    {
+        $userId = Auth::user()?->id;
+        $user = User::with('roles')->where('id', $userId)->first();
+        return response()->json( $user );
+    }
 }
